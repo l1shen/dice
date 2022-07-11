@@ -13,6 +13,7 @@ apps.push({
       kind: App.kind,
       options: {
         title: "Dice",
+        scenePath: "/dice"
       },
     });
   },

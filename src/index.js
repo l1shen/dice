@@ -25,6 +25,10 @@ const App_dice = {
     // box 为插件所在的窗口
     const box = context.getBox();
     box.mountStyles(styles);
+
+    // 挂载白板到 box 中
+    context.mountView(box.$content);
+
     // 创建一个 DOM 用来放内容
     const $content = document.createElement("div");
     $content.className = "app-dice";
@@ -75,9 +79,37 @@ const App_dice = {
     const dispose = storage.addStateChangedListener(refresh);
     refresh();
 
+    // 从 memberState 中获取教具
+    function getAppliance(state) {
+        return state.memberState.currentApplianceName
+    }
+
+    // 当教具为 clicker 时允许点击骰子
+    function computedContent(appliance) {
+        if (appliance === "clicker") {
+            $content.style.pointerEvents = "auto";
+        } else {
+            $content.style.pointerEvents = "none";
+        }
+    }
+
+    // 初始化调用计算当前教具
+    const room = context.getRoom();
+    const appliance = getAppliance(room.state);
+    computedContent(appliance);
+
+    // 监听 roomState 的变化触发教具重新计算
+    const roomStateChangeDispose = context.emitter.on("roomStateChange", state => {
+        if (state.memberState) {
+            const appliance = getAppliance(state);
+            computedContent(appliance);
+        }
+    });
+
     //关闭插件的时候销毁未使用的侦听器
     context.emitter.on("destroy", () => {
       dispose();
+      roomStateChangeDispose();
     });
   },
 };
